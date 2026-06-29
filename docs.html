@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Performance Engineer MCP — Documentation</title>
+<meta name="description" content="MCP server that analyzes websites and returns actionable Core Web Vitals recommendations. 16 tools covering Lighthouse, PageSpeed Insights, images, CSS, JS, fonts, WordPress, and Cloudflare.">
+</head>
+<body>
+
+<style>
+:root {
+  --bg: #F7F8FA;
+  --surface: #fff;
+  --code-bg: #181C2A;
+  --code-surface: #1F2435;
+  --border: #DFE3EE;
+  --text: #141929;
+  --muted: #687098;
+  --accent: #2563EB;
+  --accent-sub: #EEF3FF;
+  --hdr: #141929;
+  --sans: system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono: 'Cascadia Code','Fira Code',ui-monospace,Consolas,monospace;
+  --max: 860px;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:15px;line-height:1.65}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* header */
+.hdr{background:var(--hdr);position:sticky;top:0;z-index:50;border-bottom:1px solid #252A3E}
+.hdr-in{max-width:calc(var(--max) + 64px);margin:0 auto;padding:0 32px;height:52px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.brand{display:flex;align-items:center;gap:9px;flex-shrink:0}
+.brand-name{font-size:13.5px;font-weight:600;color:#E0E6FA;letter-spacing:-.01em;white-space:nowrap}
+.ver{font-family:var(--mono);font-size:11px;background:#252A3E;color:#7B87BE;padding:2px 7px;border-radius:4px}
+.hnav{display:flex;gap:2px}
+.hnav a{font-size:13px;color:#7B87BE;padding:5px 10px;border-radius:5px;transition:color .12s,background .12s}
+.hnav a:hover{color:#E0E6FA;background:#252A3E;text-decoration:none}
+
+/* hero */
+.hero{background:var(--hdr);padding:52px 32px 48px;border-bottom:1px solid #252A3E}
+.hero-in{max-width:calc(var(--max) + 64px);margin:0 auto;display:flex;align-items:flex-end;justify-content:space-between;gap:40px;flex-wrap:wrap}
+.hero-eye{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#4B5677;margin-bottom:10px}
+.hero-h1{font-size:30px;font-weight:700;color:#E0E6FA;line-height:1.25;letter-spacing:-.03em;text-wrap:balance;margin-bottom:12px}
+.hero-h1 em{color:#60A5FA;font-style:normal;position:relative;display:inline-block}
+.hero-h1 em::after{content:'';position:absolute;bottom:-2px;left:0;width:100%;height:2px;background:#60A5FA;animation:sl 2.4s cubic-bezier(.4,0,.2,1) .6s forwards;transform:scaleX(0);transform-origin:left}
+@keyframes sl{0%{transform:scaleX(0);opacity:1}70%{transform:scaleX(1);opacity:1}100%{transform:scaleX(1);opacity:.3}}
+@media(prefers-reduced-motion:reduce){.hero-h1 em::after{animation:none;opacity:.3;transform:scaleX(1)}}
+.hero-sub{font-size:15px;color:#7B87BE;line-height:1.7;max-width:52ch}
+.stats{display:flex;gap:28px;flex-shrink:0}
+.stat-n{font-size:26px;font-weight:700;color:#E0E6FA;letter-spacing:-.04em;line-height:1.1;font-variant-numeric:tabular-nums}
+.stat-l{font-size:10.5px;color:#4B5677;letter-spacing:.06em;text-transform:uppercase;margin-top:2px}
+
+/* page wrapper */
+.page{max-width:calc(var(--max) + 64px);margin:0 auto;padding:48px 32px 80px}
+
+/* sections */
+.sec{margin-bottom:60px}
+.eye{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:7px}
+.sec-h{font-size:21px;font-weight:700;color:var(--text);letter-spacing:-.025em;margin-bottom:6px;text-wrap:balance}
+.sec-d{color:var(--muted);font-size:14.5px;margin-bottom:24px;max-width:62ch}
+h3{font-size:15.5px;font-weight:600;color:var(--text);margin:28px 0 10px;letter-spacing:-.01em}
+h3:first-child{margin-top:0}
+p{margin-bottom:12px;color:var(--muted);font-size:14.5px}
+p:last-child{margin-bottom:0}
+strong{color:var(--text)}
+
+/* steps */
+.steps{display:flex;flex-direction:column;gap:20px}
+.step{display:grid;grid-template-columns:32px 1fr;gap:14px;align-items:start}
+.step-n{width:32px;height:32px;border-radius:50%;background:var(--accent-sub);color:var(--accent);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.step-t{font-size:14.5px;font-weight:600;color:var(--text);margin-bottom:6px}
+
+/* code */
+.cw{background:var(--code-bg);border-radius:8px;overflow:hidden;margin:12px 0;border:1px solid #252A3E}
+.ch{background:var(--code-surface);padding:8px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #252A3E}
+.cl{font-family:var(--mono);font-size:11px;color:#4B5677;letter-spacing:.05em;text-transform:uppercase}
+.cf{font-family:var(--mono);font-size:11px;color:#7B87BE}
+pre{font-family:var(--mono);font-size:13px;line-height:1.7;padding:16px 20px;overflow-x:auto;color:#C9D1F0;tab-size:2}
+.tc{color:#7DD3FC}.ts{color:#A3E635}.tk{color:#C084FC}.tm{color:#4B5677;font-style:italic}.ty{color:#67E8F9}.tv{color:#FCA5A5}.tn{color:#FCD34D}
+code{font-family:var(--mono);font-size:12.5px;background:#EBEFFA;color:#3B4C8C;padding:2px 6px;border-radius:4px;border:1px solid #D8DEF2}
+
+/* callout */
+.note{display:flex;gap:12px;padding:13px 16px;border-radius:7px;margin:14px 0;font-size:14px}
+.note-i{background:var(--accent-sub);border:1px solid #C7D7FD;color:var(--accent)}
+.note-w{background:#FFFBEB;border:1px solid #FDE68A;color:#92400E}
+.note-ico{flex-shrink:0;font-size:15px;line-height:1.6}
+.note-txt{line-height:1.6}
+
+/* table */
+.tw{overflow-x:auto;margin:14px 0}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);background:var(--bg);padding:9px 14px;text-align:left;border-bottom:2px solid var(--border)}
+td{padding:9px 14px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#FAFBFF}
+td code{font-size:11.5px}
+
+/* cwv grid */
+.cwv{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:16px 0}
+.cwv-c{background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:12px 10px;text-align:center}
+.cwv-a{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--text);margin-bottom:3px}
+.cwv-f{font-size:10px;color:var(--muted);line-height:1.3;margin-bottom:7px}
+.cwv-g{font-size:11px;color:#16A34A;font-weight:600}
+.cwv-w{font-size:11px;color:#CA8A04}
+.cwv-b{font-size:11px;color:#DC2626}
+
+/* phase groups */
+.phase{margin-bottom:36px}
+.ph{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.ph-t{font-size:14px;font-weight:700;color:var(--text)}
+.ph-b{font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;letter-spacing:.02em}
+.b1{background:#DBEAFE;color:#1D4ED8}.b2{background:#FEF3C7;color:#92400E}.b3{background:#DCFCE7;color:#166534}.b4{background:#F3E8FF;color:#6B21A8}
+
+/* tool grid */
+.tg{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tc2{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;position:relative;overflow:hidden;transition:border-color .15s,box-shadow .15s}
+.tc2::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;border-radius:8px 0 0 8px}
+.tc2:hover{border-color:#B8C4E8;box-shadow:0 2px 10px rgba(37,99,235,.07)}
+.c-orch::before{background:#2563EB}.c-lh::before{background:#F97316}.c-img::before{background:#D97706}
+.c-css::before{background:#7C3AED}.c-js::before{background:#0369A1}.c-fnt::before{background:#BE185D}
+.c-srv::before{background:#065F46}.c-plt::before{background:#C2410C}.c-int::before{background:#4338CA}
+.tn2{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--accent);margin-bottom:5px}
+.td2{font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:10px}
+.params{display:flex;flex-wrap:wrap;gap:5px}
+.p-r{font-family:var(--mono);font-size:11px;background:#EEF3FF;border:1px solid #C7D7FD;color:#3B5BDB;border-radius:4px;padding:2px 7px}
+.p-o{font-family:var(--mono);font-size:11px;background:var(--bg);border:1px solid var(--border);color:var(--muted);border-radius:4px;padding:2px 7px}
+
+/* workflow strip */
+.wf{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin:14px 0}
+.ws{flex:1;padding:14px 14px;border-right:1px solid var(--border);min-width:0}
+.ws:last-child{border-right:none}
+.ws-n{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:3px}
+.ws-t{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--accent);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ws-d{font-size:12px;color:var(--muted);line-height:1.4}
+
+/* divider */
+.div{border:none;border-top:1px solid var(--border);margin:48px 0}
+
+@media(max-width:700px){
+  .tg{grid-template-columns:1fr}
+  .cwv{grid-template-columns:repeat(3,1fr)}
+  .stats{display:none}
+  .wf{flex-direction:column}
+  .ws{border-right:none;border-bottom:1px solid var(--border)}
+  .ws:last-child{border-bottom:none}
+  .hero-in{flex-direction:column}
+  .page{padding:32px 20px 60px}
+  .hdr-in{padding:0 20px}
+  .hero{padding:36px 20px 36px}
+}
+</style>
+
+<!-- Header -->
+<header class="hdr">
+  <div class="hdr-in">
+    <div class="brand">
+      <span style="font-size:17px;line-height:1">&#9889;</span>
+      <span class="brand-name">Performance Engineer MCP</span>
+      <span class="ver">v1.0</span>
+    </div>
+    <nav class="hnav">
+      <a href="#setup">Setup</a>
+      <a href="#tools">Tools</a>
+      <a href="#examples">Examples</a>
+    </nav>
+  </div>
+</header>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-in">
+    <div>
+      <div class="hero-eye">Model Context Protocol Server</div>
+      <h1 class="hero-h1">Audit any website&#8217;s <em>Core Web Vitals</em> from Claude</h1>
+      <p class="hero-sub">16 tools that analyze Lighthouse scores, images, CSS, JavaScript, fonts, WordPress plugins, and Cloudflare configuration &#8212; then return prioritized, actionable recommendations.</p>
+    </div>
+    <div class="stats">
+      <div><div class="stat-n">16</div><div class="stat-l">Tools</div></div>
+      <div><div class="stat-n">4</div><div class="stat-l">Phases</div></div>
+      <div><div class="stat-n">10+</div><div class="stat-l">CMS targets</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- Page content -->
+<div class="page">
+
+  <!-- Setup -->
+  <section class="sec" id="setup">
+    <div class="eye">Getting Started</div>
+    <h2 class="sec-h">Installation</h2>
+    <p class="sec-d">Requires Node.js 22+. Playwright downloads Chromium automatically on install.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-n">1</div>
+        <div>
+          <div class="step-t">Clone and install</div>
+          <div class="cw">
+            <div class="ch"><span class="cl">bash</span></div>
+            <pre><span class="tc">git clone</span> https://github.com/your-repo/performance-mcp
+<span class="tc">cd</span> performance-mcp
+<span class="tc">npm install</span>    <span class="tm"># playwright install chromium runs automatically</span></pre>
+          </div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">2</div>
+        <div>
+          <div class="step-t">Set up environment variables (optional)</div>
+          <div class="cw">
+            <div class="ch"><span class="cl">bash</span></div>
+            <pre><span class="tc">cp</span> .env.example .env
+<span class="tm"># Add GOOGLE_PAGESPEED_API_KEY for real-user CrUX field data</span></pre>
+          </div>
+          <div class="note note-i"><span class="note-ico">i</span><div class="note-txt">Without an API key, <code>get_core_web_vitals</code> returns Lighthouse lab simulation. With a key it returns real-user CrUX field data from PageSpeed Insights.</div></div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">3</div>
+        <div>
+          <div class="step-t">Build the server</div>
+          <div class="cw">
+            <div class="ch"><span class="cl">bash</span></div>
+            <pre><span class="tc">npm run build</span>   <span class="tm"># compiles TypeScript to dist/server.js</span>
+<span class="tc">npm start</span>       <span class="tm"># verify: should print "MCP server running on stdio"</span></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Claude config -->
+  <section class="sec" id="claude-config">
+    <div class="eye">Configuration</div>
+    <h2 class="sec-h">Connecting to Claude</h2>
+    <p class="sec-d">Add the server to your MCP configuration. The path must point to the compiled <code>dist/server.js</code>.</p>
+
+    <h3>Claude Code (VS Code / CLI)</h3>
+    <p>Edit <code>.claude/settings.json</code> in your project, or the global <code>~/.claude/settings.json</code>:</p>
+    <div class="cw">
+      <div class="ch"><span class="cl">json</span><span class="cf">.claude/settings.json</span></div>
+      <pre>{
+  <span class="ty">"mcpServers"</span>: {
+    <span class="ty">"performance"</span>: {
+      <span class="ty">"command"</span>: <span class="ts">"node"</span>,
+      <span class="ty">"args"</span>: [<span class="ts">"C:/path/to/performance-mcp/dist/server.js"</span>]
+    }
+  }
+}</pre>
+    </div>
+
+    <h3>Claude Desktop</h3>
+    <p>Edit <code>claude_desktop_config.json</code> (found in Claude Desktop settings &#8594; Developer):</p>
+    <div class="cw">
+      <div class="ch"><span class="cl">json</span><span class="cf">claude_desktop_config.json</span></div>
+      <pre>{
+  <span class="ty">"mcpServers"</span>: {
+    <span class="ty">"performance"</span>: {
+      <span class="ty">"command"</span>: <span class="ts">"node"</span>,
+      <span class="ty">"args"</span>: [<span class="ts">"/Users/you/performance-mcp/dist/server.js"</span>]
+    }
+  }
+}</pre>
+    </div>
+    <p>Restart Claude after saving. The &#8220;performance&#8221; server will appear in available MCP servers.</p>
+  </section>
+
+  <!-- Env vars -->
+  <section class="sec" id="env">
+    <h2 class="sec-h">Environment Variables</h2>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Variable</th><th>Required</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>GOOGLE_PAGESPEED_API_KEY</code></td>
+            <td>Optional</td>
+            <td>Enables real-user CrUX field data in <code>get_core_web_vitals</code>. Get a free key from Google Cloud Console under the PageSpeed Insights API.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <hr class="div">
+
+  <!-- CWV -->
+  <section class="sec" id="cwv">
+    <div class="eye">Core Concepts</div>
+    <h2 class="sec-h">Core Web Vitals thresholds</h2>
+    <p class="sec-d">The five metrics this tool measures and optimizes for. All tools report in these units.</p>
+    <div class="cwv">
+      <div class="cwv-c"><div class="cwv-a">LCP</div><div class="cwv-f">Largest Contentful Paint</div><div class="cwv-g">&#8804; 2.5s good</div><div class="cwv-w">&#8804; 4.0s needs work</div><div class="cwv-b">&gt; 4.0s poor</div></div>
+      <div class="cwv-c"><div class="cwv-a">CLS</div><div class="cwv-f">Cumulative Layout Shift</div><div class="cwv-g">&#8804; 0.1 good</div><div class="cwv-w">&#8804; 0.25 needs work</div><div class="cwv-b">&gt; 0.25 poor</div></div>
+      <div class="cwv-c"><div class="cwv-a">INP</div><div class="cwv-f">Interaction to Next Paint</div><div class="cwv-g">&#8804; 200ms good</div><div class="cwv-w">&#8804; 500ms needs work</div><div class="cwv-b">&gt; 500ms poor</div></div>
+      <div class="cwv-c"><div class="cwv-a">FCP</div><div class="cwv-f">First Contentful Paint</div><div class="cwv-g">&#8804; 1.8s good</div><div class="cwv-w">&#8804; 3.0s needs work</div><div class="cwv-b">&gt; 3.0s poor</div></div>
+      <div class="cwv-c"><div class="cwv-a">TTFB</div><div class="cwv-f">Time to First Byte</div><div class="cwv-g">&#8804; 800ms good</div><div class="cwv-w">&#8804; 1.8s needs work</div><div class="cwv-b">&gt; 1.8s poor</div></div>
+    </div>
+  </section>
+
+  <hr class="div">
+
+  <!-- Tools reference -->
+  <section class="sec" id="tools">
+    <div class="eye">Tools Reference</div>
+    <h2 class="sec-h">All 16 tools</h2>
+    <p class="sec-d">Blue badges are required parameters. All tools return deterministic JSON &#8212; no prose.</p>
+
+    <!-- Phase 1 -->
+    <div class="phase" id="phase1">
+      <div class="ph"><span class="ph-t">Phase 1 &#8212; Core</span><span class="ph-b b1">Foundation</span></div>
+      <div class="tg">
+        <div class="tc2 c-orch">
+          <div class="tn2">analyze_website</div>
+          <div class="td2">Full orchestrator. Auto-detects CMS, fans out all tools in parallel, dispatches platform-specific inspection, and returns a prioritized recommendation list. Start here for any audit.</div>
+          <div class="params"><span class="p-r">url: string</span></div>
+        </div>
+        <div class="tc2 c-lh">
+          <div class="tn2">run_lighthouse</div>
+          <div class="td2">Runs a Lighthouse audit via the npm package. Returns performance score, all 5 Core Web Vitals (lab data), and improvement opportunities with estimated time/byte savings.</div>
+          <div class="params"><span class="p-r">url: string</span><span class="p-o">strategy: mobile|desktop</span></div>
+        </div>
+        <div class="tc2 c-srv">
+          <div class="tn2">get_core_web_vitals</div>
+          <div class="td2">Fetches from PageSpeed Insights API. Returns real-user CrUX field data when an API key is set, otherwise falls back to Lighthouse lab data.</div>
+          <div class="params"><span class="p-r">url: string</span><span class="p-o">strategy: mobile|desktop</span></div>
+        </div>
+        <div class="tc2 c-srv">
+          <div class="tn2">analyze_headers</div>
+          <div class="td2">Inspects HTTP response headers: Brotli/gzip compression, Cache-Control, ETag, HTTP/2 support, CDN detection, and HSTS/CSP/X-Frame security headers.</div>
+          <div class="params"><span class="p-r">url: string</span></div>
+        </div>
+        <div class="tc2 c-css">
+          <div class="tn2">analyze_html</div>
+          <div class="td2">Parses HTML with Cheerio. Checks render-blocking stylesheets and scripts, defer/async usage, inline script count, preload hints, canonical tag, and viewport.</div>
+          <div class="params"><span class="p-r">url: string</span></div>
+        </div>
+        <div class="tc2 c-plt">
+          <div class="tn2">detect_cms</div>
+          <div class="td2">Fingerprints the CMS and hosting platform using HTML patterns, HTTP headers, and URL conventions. Identifies WordPress, Shopify, Next.js, Nuxt, Astro, Webflow, Wix, Squarespace, Drupal, Joomla, and more.</div>
+          <div class="params"><span class="p-r">url: string</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 2 -->
+    <div class="phase" id="phase2">
+      <div class="ph"><span class="ph-t">Phase 2 &#8212; Deep Analyzers</span><span class="ph-b b2">Playwright</span></div>
+      <div class="tg">
+        <div class="tc2 c-img">
+          <div class="tn2">analyze_images</div>
+          <div class="td2">Scans every img element via Playwright. Detects oversized images, legacy formats (PNG/JPEG vs AVIF/WebP), missing lazy loading, missing width/height attributes, and identifies the LCP hero candidate to preload.</div>
+          <div class="params"><span class="p-r">url: string</span></div>
+        </div>
+        <div class="tc2 c-css">
+          <div class="tn2">analyze_css</div>
+          <div class="td2">Uses Playwright CSS coverage to measure per-stylesheet usage %. Flags render-blocking stylesheets, high unused CSS, and large framework bundles (Bootstrap, Tailwind full build).</div>
+          <div class="params"><span class="p-r">url: string</span></div>
+        </div>
+        <div class="tc2 c-js">
+          <div class="tn2">analyze_javascript</div>
+          <div class="td2">Uses Playwright JS coverage to find unused JS per bundle. Detects render-blocking scripts, large bundles, and 15+ third-party vendors (GTM, Facebook Pixel, Hotjar, Intercom, Segment, etc.).</div>
+          <div class="params"><span class="p-r">url: string</span></div>
+        </div>
+        <div class="tc2 c-fnt">
+          <div class="tn2">analyze_fonts</div>
+          <div class="td2">Checks Google Fonts preconnect hints, CSS @import anti-pattern, font-display values, WOFF2 format usage, and preload hints for self-hosted fonts.</div>
+          <div class="params"><span class="p-r">url: string</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 3 -->
+    <div class="phase" id="phase3">
+      <div class="ph"><span class="ph-t">Phase 3 &#8212; Platform Inspectors</span><span class="ph-b b3">CMS-Aware</span></div>
+      <div class="tg">
+        <div class="tc2 c-plt">
+          <div class="tn2">wordpress_inspector</div>
+          <div class="td2">Deep WordPress audit. Detects 20+ plugins (Elementor, Divi, WooCommerce, WP Rocket, LiteSpeed Cache, NitroPack, Perfmatters, FlyingPress, Yoast, RankMath, and more) with plugin-level recommendations and estimated LCP impact.</div>
+          <div class="params"><span class="p-r">url: string</span></div>
+        </div>
+        <div class="tc2 c-srv">
+          <div class="tn2">cloudflare_inspector</div>
+          <div class="td2">Detects Cloudflare and audits CF-Cache-Status, Brotli compression, HTTP/3, Early Hints, and Polish image optimization. Returns structured Cache Rules, Transform Rules, and dashboard setting recommendations.</div>
+          <div class="params"><span class="p-r">url: string</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 4 -->
+    <div class="phase" id="phase4">
+      <div class="ph"><span class="ph-t">Phase 4 &#8212; Intelligence Layer</span><span class="ph-b b4">Generators</span></div>
+      <div class="tg">
+        <div class="tc2 c-int">
+          <div class="tn2">generate_report</div>
+          <div class="td2">Runs a full analysis and returns a human-readable Markdown report: Lighthouse score tables, CWV with good/warn/poor ratings, platform summary, image/JS/CSS summaries, and numbered fix recommendations.</div>
+          <div class="params"><span class="p-r">url: string</span></div>
+        </div>
+        <div class="tc2 c-int">
+          <div class="tn2">generate_wp_rocket_config</div>
+          <div class="td2">Analyzes WordPress plugins and returns a WP Rocket settings JSON object. Accounts for Elementor/Divi (disables CSS/JS combination), WooCommerce cart exclusions, script delay rules, and conflict warnings for NitroPack and LiteSpeed.</div>
+          <div class="params"><span class="p-r">url: string</span></div>
+        </div>
+        <div class="tc2 c-int">
+          <div class="tn2">generate_cloudflare_rules</div>
+          <div class="td2">Generates ready-to-implement Cloudflare Cache Rules (static assets 1yr, HTML 5min), Transform Rules (security headers), Speed settings, and CMS-aware cache bypass rules for WordPress admin, WooCommerce cart, and Shopify checkout.</div>
+          <div class="params"><span class="p-r">url: string</span></div>
+        </div>
+        <div class="tc2 c-int">
+          <div class="tn2">compare_performance</div>
+          <div class="td2">Compares two analyze_website JSON reports (before and after a change). Returns Lighthouse score deltas, CWV improvements or regressions, newly introduced issues, and resolved issues with a summary sentence.</div>
+          <div class="params"><span class="p-r">before_report: JSON string</span><span class="p-r">after_report: JSON string</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="div">
+
+  <!-- Examples -->
+  <section class="sec" id="examples">
+    <div class="eye">Usage</div>
+    <h2 class="sec-h">Common workflows</h2>
+
+    <h3>Full site audit &#8212; start here</h3>
+    <p><code>analyze_website</code> detects the CMS and fans out all tools in parallel. It returns everything in one call.</p>
+    <div class="cw">
+      <div class="ch"><span class="cl">claude</span></div>
+      <pre>analyze_website { <span class="ts">"url"</span>: <span class="ts">"https://example.com"</span> }</pre>
+    </div>
+
+    <h3>Get a shareable Markdown report</h3>
+    <div class="cw">
+      <div class="ch"><span class="cl">claude</span></div>
+      <pre>generate_report { <span class="ts">"url"</span>: <span class="ts">"https://example.com"</span> }</pre>
+    </div>
+
+    <h3>WordPress + WP Rocket workflow</h3>
+    <div class="wf">
+      <div class="ws"><div class="ws-n">Step 1</div><div class="ws-t">wordpress_inspector</div><div class="ws-d">Detect active plugins, page builder, WooCommerce, and existing cache plugins</div></div>
+      <div class="ws"><div class="ws-n">Step 2</div><div class="ws-t">generate_wp_rocket_config</div><div class="ws-d">Generate recommended WP Rocket settings JSON tailored to what was detected</div></div>
+      <div class="ws"><div class="ws-n">Step 3</div><div class="ws-t">analyze_images</div><div class="ws-d">Find images to convert to AVIF/WebP and identify the LCP preload candidate</div></div>
+    </div>
+    <div class="cw">
+      <div class="ch"><span class="cl">claude</span></div>
+      <pre><span class="tm"># Deep WordPress plugin audit</span>
+wordpress_inspector { <span class="ts">"url"</span>: <span class="ts">"https://my-wp-site.com"</span> }
+
+<span class="tm"># Generate WP Rocket config tailored to this site</span>
+generate_wp_rocket_config { <span class="ts">"url"</span>: <span class="ts">"https://my-wp-site.com"</span> }</pre>
+    </div>
+
+    <h3>Cloudflare setup workflow</h3>
+    <div class="cw">
+      <div class="ch"><span class="cl">claude</span></div>
+      <pre><span class="tm"># Audit current Cloudflare status</span>
+cloudflare_inspector { <span class="ts">"url"</span>: <span class="ts">"https://example.com"</span> }
+
+<span class="tm"># Generate Cache Rules + Transform Rules to implement</span>
+generate_cloudflare_rules { <span class="ts">"url"</span>: <span class="ts">"https://example.com"</span> }</pre>
+    </div>
+    <p>The rules output contains the exact Cloudflare expression syntax ready to paste into the Cache Rules editor in the Cloudflare dashboard.</p>
+
+    <h3>Before/after comparison</h3>
+    <p>Run <code>analyze_website</code> before making changes, save the JSON, make improvements, run again, then compare the two outputs.</p>
+    <div class="cw">
+      <div class="ch"><span class="cl">claude</span></div>
+      <pre><span class="tm"># Step 1: run before changes, copy the JSON output</span>
+analyze_website { <span class="ts">"url"</span>: <span class="ts">"https://example.com"</span> }
+
+<span class="tm"># Step 2: make your changes, run again, copy new JSON</span>
+analyze_website { <span class="ts">"url"</span>: <span class="ts">"https://example.com"</span> }
+
+<span class="tm"># Step 3: compare the two reports</span>
+compare_performance {
+  <span class="ts">"before_report"</span>: <span class="ts">"{ ...first JSON... }"</span>,
+  <span class="ts">"after_report"</span>: <span class="ts">"{ ...second JSON... }"</span>
+}</pre>
+    </div>
+    <div class="note note-w"><span class="note-ico">&#9888;</span><div class="note-txt">Lighthouse lab scores vary run-to-run by &#177;5 points. For stable comparisons, use <code>get_core_web_vitals</code> with a PageSpeed API key to get real-user CrUX field data instead.</div></div>
+
+    <h3>Targeted single-tool audits</h3>
+    <div class="cw">
+      <div class="ch"><span class="cl">claude</span></div>
+      <pre><span class="tm"># Images only</span>
+analyze_images { <span class="ts">"url"</span>: <span class="ts">"https://example.com"</span> }
+
+<span class="tm"># JavaScript bundles and third-party scripts only</span>
+analyze_javascript { <span class="ts">"url"</span>: <span class="ts">"https://example.com"</span> }
+
+<span class="tm"># Font loading strategy only</span>
+analyze_fonts { <span class="ts">"url"</span>: <span class="ts">"https://example.com"</span> }
+
+<span class="tm"># Desktop Lighthouse audit</span>
+run_lighthouse { <span class="ts">"url"</span>: <span class="ts">"https://example.com"</span>, <span class="ts">"strategy"</span>: <span class="ts">"desktop"</span> }</pre>
+    </div>
+  </section>
+
+  <hr class="div">
+
+  <!-- Dev commands -->
+  <section class="sec">
+    <div class="eye">Development</div>
+    <h2 class="sec-h">CLI commands</h2>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Command</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>npm run build</code></td><td>Compile TypeScript &#8594; <code>dist/</code> via tsup</td></tr>
+          <tr><td><code>npm run dev</code></td><td>Watch mode &#8212; rebuilds on every file save</td></tr>
+          <tr><td><code>npm test</code></td><td>Run vitest unit tests</td></tr>
+          <tr><td><code>npm start</code></td><td>Run the compiled MCP server on stdio</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>

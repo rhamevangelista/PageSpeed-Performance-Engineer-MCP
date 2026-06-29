@@ -1,0 +1,35 @@
+{
+  "name": "performance-engineer-mcp",
+  "version": "1.0.0",
+  "description": "MCP server that analyzes websites like a senior performance engineer",
+  "type": "module",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "start": "node dist/server.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "postinstall": "playwright install chromium --with-deps"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "cheerio": "^1.0.0",
+    "dotenv": "^16.4.0",
+    "esbuild": "^0.24.0",
+    "lighthouse": "^12.0.0",
+    "playwright": "^1.48.0",
+    "postcss": "^8.4.0",
+    "sharp": "^0.33.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0",
+    "tsup": "^8.3.0",
+    "vitest": "^2.1.0"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}
