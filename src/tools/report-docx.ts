@@ -10,6 +10,8 @@ import { join } from 'path'
 import type { AnalysisReport, Recommendation } from '../types.js'
 import { analyzeWebsite } from './recommendations.js'
 
+const FONT = 'Arial'
+
 // ─── Public entry point ───────────────────────────────────────────────────────
 
 export async function generateReportDocx(url: string): Promise<string> {
@@ -64,17 +66,19 @@ function impactText(rec: Recommendation): string {
 // ─── Colour palette (hex without #) ──────────────────────────────────────────
 
 const C = {
-  black:    '0D1117',
-  darkGray: '21262D',
-  midGray:  '30363D',
-  text:     '58A6FF',   // accent blue for headers
-  muted:    '6E7681',
-  good:     '3FB950',
-  warn:     'D29922',
-  poor:     'DA3633',
-  white:    'FFFFFF',
-  lightBg:  'F0F6FC',   // page background tint
-  rowAlt:   'EFF2F5',
+  black:      '1A1A2E',   // deep navy-black (cover title, dividers)
+  darkGray:   '2C3E50',   // dark slate (H2 headings)
+  midGray:    'BDC3C7',   // light border
+  text:       '2563EB',   // accent blue
+  muted:      '6E7681',   // secondary text
+  good:       '16A34A',   // green
+  warn:       'D97706',   // amber
+  poor:       'DC2626',   // red
+  white:      'FFFFFF',
+  headerBg:   '1F4E79',   // navy — header row background
+  headerText: 'FFFFFF',   // white text on navy
+  rowAlt:     'EBF5FB',   // pale blue alternate row
+  bodyText:   '111827',   // near-black body text
 }
 
 // ─── Reusable paragraph builders ─────────────────────────────────────────────
@@ -97,7 +101,7 @@ function h2(text: string): Paragraph {
 
 function body(text: string, bold = false): Paragraph {
   return new Paragraph({
-    children: [new TextRun({ text, bold, size: 22 })],
+    children: [new TextRun({ text, bold, size: 22, font: FONT })],
     spacing: { after: 80 },
   })
 }
@@ -110,6 +114,7 @@ function label(text: string): Paragraph {
       size: 18,
       color: C.muted,
       characterSpacing: 40,
+      font: FONT,
     })],
     spacing: { before: 200, after: 60 },
   })
@@ -133,9 +138,9 @@ function scoreColor(score: number): string {
 function headerCell(text: string): TableCell {
   return new TableCell({
     children: [new Paragraph({
-      children: [new TextRun({ text, bold: true, size: 20, color: C.white })],
+      children: [new TextRun({ text, bold: true, size: 20, color: C.headerText, font: FONT })],
     })],
-    shading: { type: ShadingType.SOLID, fill: C.black },
+    shading: { type: ShadingType.CLEAR, fill: C.headerBg },
     margins: { top: 80, bottom: 80, left: 120, right: 120 },
   })
 }
@@ -143,7 +148,7 @@ function headerCell(text: string): TableCell {
 function dataCell(text: string, color?: string, bold = false): TableCell {
   return new TableCell({
     children: [new Paragraph({
-      children: [new TextRun({ text, color: color ?? C.black, bold, size: 20 })],
+      children: [new TextRun({ text, color: color ?? C.bodyText, bold, size: 20, font: FONT })],
     })],
     margins: { top: 60, bottom: 60, left: 120, right: 120 },
   })
@@ -152,9 +157,9 @@ function dataCell(text: string, color?: string, bold = false): TableCell {
 function altDataCell(text: string, color?: string, bold = false, altRow = false): TableCell {
   return new TableCell({
     children: [new Paragraph({
-      children: [new TextRun({ text, color: color ?? C.black, bold, size: 20 })],
+      children: [new TextRun({ text, color: color ?? C.bodyText, bold, size: 20, font: FONT })],
     })],
-    shading: altRow ? { type: ShadingType.SOLID, fill: C.rowAlt } : undefined,
+    shading: altRow ? { type: ShadingType.CLEAR, fill: C.rowAlt } : undefined,
     margins: { top: 60, bottom: 60, left: 120, right: 120 },
   })
 }
@@ -187,7 +192,7 @@ function buildScoreTable(report: AnalysisReport): (Paragraph | Table)[] {
         }),
         ...rows.map(([cat, score, rating], i) => new TableRow({
           children: [
-            altDataCell(cat, C.black, true, i % 2 === 1),
+            altDataCell(cat, C.bodyText, true, i % 2 === 1),
             altDataCell(String(score), scoreColor(score), true, i % 2 === 1),
             altDataCell(rating, scoreColor(score), false, i % 2 === 1),
           ],
@@ -215,7 +220,7 @@ function buildCwvTable(report: AnalysisReport): (Paragraph | Table)[] {
   return [
     h2('Core Web Vitals'),
     new Paragraph({
-      children: [new TextRun({ text: `Source: ${src}`, italics: true, size: 20, color: C.muted })],
+      children: [new TextRun({ text: `Source: ${src}`, italics: true, size: 20, color: C.muted, font: FONT })],
       spacing: { after: 100 },
     }),
     new Table({
@@ -232,7 +237,7 @@ function buildCwvTable(report: AnalysisReport): (Paragraph | Table)[] {
         }),
         ...rows.map(([metric, value, rating, benchmark], i) => new TableRow({
           children: [
-            altDataCell(metric, C.black, true, i % 2 === 1),
+            altDataCell(metric, C.bodyText, true, i % 2 === 1),
             altDataCell(value, ratingColor(rating), true, i % 2 === 1),
             altDataCell(rating, ratingColor(rating), false, i % 2 === 1),
             altDataCell(benchmark, C.muted, false, i % 2 === 1),
@@ -270,7 +275,7 @@ function buildLcpSavingsTable(report: AnalysisReport): (Paragraph | Table)[] {
           const diffColor = rec.difficulty === 'easy' ? C.good : rec.difficulty === 'medium' ? C.warn : C.poor
           return new TableRow({
             children: [
-              altDataCell(rec.issue, C.black, true, i % 2 === 1),
+              altDataCell(rec.issue, C.bodyText, true, i % 2 === 1),
               altDataCell(rec.category, C.muted, false, i % 2 === 1),
               altDataCell(`−${lcp}ms`, lcp >= 1000 ? C.poor : lcp >= 500 ? C.warn : C.good, true, i % 2 === 1),
               altDataCell(rec.difficulty, diffColor, false, i % 2 === 1),
@@ -287,47 +292,44 @@ function buildRecommendations(report: AnalysisReport): Paragraph[] {
   const items: Paragraph[] = [h2('Prioritised Recommendations')]
 
   for (const rec of report.recommendations) {
-    // Recommendation heading
     items.push(new Paragraph({
       children: [
-        new TextRun({ text: `P${rec.priority}  `, bold: true, size: 24, color: C.muted }),
-        new TextRun({ text: rec.issue, bold: true, size: 24 }),
+        new TextRun({ text: `P${rec.priority}  `, bold: true, size: 24, color: C.muted, font: FONT }),
+        new TextRun({ text: rec.issue, bold: true, size: 24, color: C.bodyText, font: FONT }),
       ],
       spacing: { before: 240, after: 60 },
     }))
 
-    // Impact / category / difficulty chips on one line
     const impactStr = impactText(rec)
     items.push(new Paragraph({
       children: [
-        new TextRun({ text: 'Impact: ', bold: true, size: 20 }),
-        new TextRun({ text: impactStr, size: 20, color: C.warn }),
-        new TextRun({ text: '   Category: ', bold: true, size: 20 }),
-        new TextRun({ text: rec.category, size: 20, color: C.muted }),
-        new TextRun({ text: '   Difficulty: ', bold: true, size: 20 }),
+        new TextRun({ text: 'Impact: ', bold: true, size: 20, font: FONT }),
+        new TextRun({ text: impactStr, size: 20, color: C.warn, font: FONT }),
+        new TextRun({ text: '   Category: ', bold: true, size: 20, font: FONT }),
+        new TextRun({ text: rec.category, size: 20, color: C.muted, font: FONT }),
+        new TextRun({ text: '   Difficulty: ', bold: true, size: 20, font: FONT }),
         new TextRun({
           text: rec.difficulty,
           size: 20,
           color: rec.difficulty === 'easy' ? C.good : rec.difficulty === 'medium' ? C.warn : C.poor,
+          font: FONT,
         }),
       ],
       spacing: { after: 60 },
     }))
 
-    // Evidence
     items.push(new Paragraph({
       children: [
-        new TextRun({ text: 'Evidence: ', bold: true, size: 20 }),
-        new TextRun({ text: rec.evidence, size: 20, color: C.muted }),
+        new TextRun({ text: 'Evidence: ', bold: true, size: 20, font: FONT }),
+        new TextRun({ text: rec.evidence, size: 20, color: C.muted, font: FONT }),
       ],
       spacing: { after: 60 },
     }))
 
-    // Fix
     items.push(new Paragraph({
       children: [
-        new TextRun({ text: 'Fix: ', bold: true, size: 20 }),
-        new TextRun({ text: rec.fix, size: 20 }),
+        new TextRun({ text: 'Fix: ', bold: true, size: 20, font: FONT }),
+        new TextRun({ text: rec.fix, size: 20, color: C.bodyText, font: FONT }),
       ],
       spacing: { after: 80 },
     }))
@@ -348,7 +350,6 @@ function buildDocument(report: AnalysisReport): Document {
   const perf    = report.scores?.performance ?? null
   const cwvSrc  = report.coreWebVitals?.source === 'field' ? 'Field Data (CrUX)' : 'Lab Data (Lighthouse)'
 
-  // Cover page children
   const coverChildren: Paragraph[] = [
     new Paragraph({ spacing: { before: 1200 } }),
     new Paragraph({
@@ -356,7 +357,8 @@ function buildDocument(report: AnalysisReport): Document {
         text: 'Web Performance Report',
         bold: true,
         size: 56,
-        color: C.black,
+        color: C.black,   // deep navy on cover
+        font: FONT,
       })],
       alignment: AlignmentType.LEFT,
       spacing: { after: 160 },
@@ -367,47 +369,48 @@ function buildDocument(report: AnalysisReport): Document {
         size: 32,
         color: C.muted,
         underline: { type: UnderlineType.SINGLE },
+        font: FONT,
       })],
       spacing: { after: 480 },
     }),
     divider(),
     new Paragraph({
       children: [
-        new TextRun({ text: 'Analyzed:  ', bold: true, size: 22 }),
-        new TextRun({ text: date, size: 22 }),
+        new TextRun({ text: 'Analyzed:  ', bold: true, size: 22, font: FONT }),
+        new TextRun({ text: date, size: 22, font: FONT }),
       ],
       spacing: { after: 80 },
     }),
     new Paragraph({
       children: [
-        new TextRun({ text: 'Data source:  ', bold: true, size: 22 }),
-        new TextRun({ text: cwvSrc, size: 22 }),
+        new TextRun({ text: 'Data source:  ', bold: true, size: 22, font: FONT }),
+        new TextRun({ text: cwvSrc, size: 22, font: FONT }),
       ],
       spacing: { after: 80 },
     }),
     ...(perf !== null ? [new Paragraph({
       children: [
-        new TextRun({ text: 'Performance score:  ', bold: true, size: 22 }),
+        new TextRun({ text: 'Performance score:  ', bold: true, size: 22, font: FONT }),
         new TextRun({
           text: `${perf} / 100 — ${scoreLabel(perf)}`,
           size: 22,
           color: scoreColor(perf),
           bold: true,
+          font: FONT,
         }),
       ],
       spacing: { after: 80 },
     })] : []),
     new Paragraph({
       children: [
-        new TextRun({ text: 'URL:  ', bold: true, size: 22 }),
-        new TextRun({ text: report.url, size: 22, color: C.muted }),
+        new TextRun({ text: 'URL:  ', bold: true, size: 22, font: FONT }),
+        new TextRun({ text: report.url, size: 22, color: C.muted, font: FONT }),
       ],
       spacing: { after: 80 },
     }),
     new Paragraph({ pageBreakBefore: true }),
   ]
 
-  // Summary paragraph
   const summaryChildren: Paragraph[] = [
     h1('Executive Summary'),
     body(
@@ -428,12 +431,11 @@ function buildDocument(report: AnalysisReport): Document {
 
     summaryChildren.push(label('Core Web Vitals at a glance'))
     summaryChildren.push(...bullets.map(b => new Paragraph({
-      children: [new TextRun({ text: `•  ${b}`, size: 22 })],
+      children: [new TextRun({ text: `•  ${b}`, size: 22, font: FONT })],
       spacing: { after: 60 },
     })))
   }
 
-  // LCP savings top-3 callout
   const topRecs = report.recommendations
     .filter(r => (r.estimatedImpact.lcp ?? 0) > 0)
     .sort((a, b) => (b.estimatedImpact.lcp ?? 0) - (a.estimatedImpact.lcp ?? 0))
@@ -444,9 +446,9 @@ function buildDocument(report: AnalysisReport): Document {
     topRecs.forEach((rec, i) => {
       summaryChildren.push(new Paragraph({
         children: [
-          new TextRun({ text: `${i + 1}.  `, bold: true, size: 22 }),
-          new TextRun({ text: rec.issue, bold: true, size: 22 }),
-          new TextRun({ text: `  (−${rec.estimatedImpact.lcp}ms LCP)`, size: 22, color: C.warn }),
+          new TextRun({ text: `${i + 1}.  `, bold: true, size: 22, font: FONT }),
+          new TextRun({ text: rec.issue, bold: true, size: 22, font: FONT }),
+          new TextRun({ text: `  (−${rec.estimatedImpact.lcp}ms LCP)`, size: 22, color: C.warn, font: FONT }),
         ],
         spacing: { after: 60 },
       }))
@@ -460,13 +462,18 @@ function buildDocument(report: AnalysisReport): Document {
     title: `Performance Report — ${domain}`,
     description: `Web performance analysis for ${report.url}`,
     styles: {
+      default: {
+        document: {
+          run: { font: FONT },
+        },
+      },
       paragraphStyles: [
         {
           id: 'Heading1',
           name: 'Heading 1',
           basedOn: 'Normal',
           next: 'Normal',
-          run: { bold: true, size: 40, color: C.black },
+          run: { bold: true, size: 40, color: C.black, font: FONT },
           paragraph: { spacing: { before: 480, after: 160 } },
         },
         {
@@ -474,7 +481,7 @@ function buildDocument(report: AnalysisReport): Document {
           name: 'Heading 2',
           basedOn: 'Normal',
           next: 'Normal',
-          run: { bold: true, size: 30, color: C.darkGray },
+          run: { bold: true, size: 30, color: C.headerBg, font: FONT },
           paragraph: { spacing: { before: 360, after: 120 } },
         },
       ],
@@ -485,7 +492,7 @@ function buildDocument(report: AnalysisReport): Document {
           default: new Header({
             children: [new Paragraph({
               children: [
-                new TextRun({ text: `Performance Report — ${domain}`, size: 18, color: C.muted }),
+                new TextRun({ text: `Performance Report — ${domain}`, size: 18, color: C.muted, font: FONT }),
               ],
               border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: C.midGray } },
             })],
@@ -495,10 +502,10 @@ function buildDocument(report: AnalysisReport): Document {
           default: new Footer({
             children: [new Paragraph({
               children: [
-                new TextRun({ text: `Generated ${date} by Performance Engineer MCP   ·   Page `, size: 18, color: C.muted }),
-                new TextRun({ children: [PageNumber.CURRENT], size: 18, color: C.muted }),
-                new TextRun({ text: ' of ', size: 18, color: C.muted }),
-                new TextRun({ children: [PageNumber.TOTAL_PAGES], size: 18, color: C.muted }),
+                new TextRun({ text: `Generated ${date} by Performance Engineer MCP   ·   Page `, size: 18, color: C.muted, font: FONT }),
+                new TextRun({ children: [PageNumber.CURRENT], size: 18, color: C.muted, font: FONT }),
+                new TextRun({ text: ' of ', size: 18, color: C.muted, font: FONT }),
+                new TextRun({ children: [PageNumber.TOTAL_PAGES], size: 18, color: C.muted, font: FONT }),
               ],
               alignment: AlignmentType.RIGHT,
             })],
