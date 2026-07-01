@@ -25,6 +25,8 @@ import { analyzeFonts } from './tools/fonts.js'
 import { analyzeWordPress } from './tools/wordpress.js'
 import { analyzeCloudflare } from './tools/cloudflare.js'
 import { generateReport } from './tools/report.js'
+import { generateReportHtml } from './tools/report-html.js'
+import { generateReportDocx } from './tools/report-docx.js'
 import { generateWPRocketConfig } from './tools/wp-rocket.js'
 import { generateCloudflareRules } from './tools/cloudflare-rules.js'
 import { compareReports } from './tools/compare.js'
@@ -231,7 +233,37 @@ server.tool(
   }
 )
 
-// ─── 14. generate_wp_rocket_config ───────────────────────────────────────────
+// ─── 14. generate_report_html ────────────────────────────────────────────────
+server.tool(
+  'generate_report_html',
+  'Run a full performance analysis and return a self-contained HTML dashboard with Lighthouse score cards, Core Web Vitals, an LCP-savings bar chart, and prioritized recommendations. Works for any site (WordPress, Shopify, Next.js, generic). Render the returned HTML as an Artifact for the user.',
+  {
+    url: z.string().url().describe('The URL to analyze'),
+  },
+  async ({ url }) => {
+    const html = await generateReportHtml(url)
+    return {
+      content: [{ type: 'text', text: html }],
+    }
+  }
+)
+
+// ─── 15. generate_report_docx ────────────────────────────────────────────────
+server.tool(
+  'generate_report_docx',
+  'Run a full performance analysis and save a Word document (.docx) report to the user\'s Downloads folder. The document includes an executive summary, Lighthouse scores table, Core Web Vitals table, LCP savings table, and all prioritised recommendations with evidence and fixes. Works for any site. Returns the full file path of the saved document.',
+  {
+    url: z.string().url().describe('The URL to analyze'),
+  },
+  async ({ url }) => {
+    const filepath = await generateReportDocx(url)
+    return {
+      content: [{ type: 'text', text: `Report saved to: ${filepath}` }],
+    }
+  }
+)
+
+// ─── 16. generate_wp_rocket_config ───────────────────────────────────────────
 server.tool(
   'generate_wp_rocket_config',
   'Analyze a WordPress site and generate a recommended WP Rocket settings configuration. Accounts for detected page builders (Elementor, Divi), WooCommerce, cache conflicts, and third-party scripts. Returns a JSON settings object with rationale and warnings.',
@@ -246,7 +278,7 @@ server.tool(
   }
 )
 
-// ─── 15. generate_cloudflare_rules ───────────────────────────────────────────
+// ─── 17. generate_cloudflare_rules ───────────────────────────────────────────
 server.tool(
   'generate_cloudflare_rules',
   'Generate ready-to-implement Cloudflare Cache Rules, Transform Rules, and recommended settings for a domain. Includes CMS-aware cache bypass rules (WordPress admin, WooCommerce cart, Shopify checkout), security header injection, and static asset caching.',
@@ -261,7 +293,7 @@ server.tool(
   }
 )
 
-// ─── 16. compare_performance ─────────────────────────────────────────────────
+// ─── 18. compare_performance ─────────────────────────────────────────────────
 server.tool(
   'compare_performance',
   'Compare two analyze_website JSON reports (before and after a change) and return a delta report: Lighthouse score changes, Core Web Vitals improvements/regressions, newly introduced issues, and resolved issues. Pass the raw JSON output from two separate analyze_website calls.',

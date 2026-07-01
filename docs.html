@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Performance Engineer MCP — Documentation</title>
-<meta name="description" content="MCP server that analyzes websites and returns actionable Core Web Vitals recommendations. 16 tools covering Lighthouse, PageSpeed Insights, images, CSS, JS, fonts, WordPress, and Cloudflare.">
+<meta name="description" content="MCP server that analyzes websites and returns actionable Core Web Vitals recommendations. 18 tools covering Lighthouse, PageSpeed Insights, images, CSS, JS, fonts, WordPress, Cloudflare, and visual/Word report generation.">
 </head>
 <body>
 
@@ -177,10 +177,10 @@ td code{font-size:11.5px}
     <div>
       <div class="hero-eye">Model Context Protocol Server</div>
       <h1 class="hero-h1">Audit any website&#8217;s <em>Core Web Vitals</em> from Claude</h1>
-      <p class="hero-sub">16 tools that analyze Lighthouse scores, images, CSS, JavaScript, fonts, WordPress plugins, and Cloudflare configuration &#8212; then return prioritized, actionable recommendations.</p>
+      <p class="hero-sub">18 tools that analyze Lighthouse scores, images, CSS, JavaScript, fonts, WordPress plugins, and Cloudflare configuration &#8212; then return prioritized recommendations as JSON, Markdown, a visual HTML dashboard, or a Word document.</p>
     </div>
     <div class="stats">
-      <div><div class="stat-n">16</div><div class="stat-l">Tools</div></div>
+      <div><div class="stat-n">18</div><div class="stat-l">Tools</div></div>
       <div><div class="stat-n">4</div><div class="stat-l">Phases</div></div>
       <div><div class="stat-n">10+</div><div class="stat-l">CMS targets</div></div>
     </div>
@@ -309,8 +309,8 @@ td code{font-size:11.5px}
   <!-- Tools reference -->
   <section class="sec" id="tools">
     <div class="eye">Tools Reference</div>
-    <h2 class="sec-h">All 16 tools</h2>
-    <p class="sec-d">Blue badges are required parameters. All tools return deterministic JSON &#8212; no prose.</p>
+    <h2 class="sec-h">All 18 tools</h2>
+    <p class="sec-d">Blue badges are required parameters. All data-collection tools return deterministic JSON. Report tools return Markdown, HTML, or a saved .docx file.</p>
 
     <!-- Phase 1 -->
     <div class="phase" id="phase1">
@@ -395,11 +395,21 @@ td code{font-size:11.5px}
 
     <!-- Phase 4 -->
     <div class="phase" id="phase4">
-      <div class="ph"><span class="ph-t">Phase 4 &#8212; Intelligence Layer</span><span class="ph-b b4">Generators</span></div>
+      <div class="ph"><span class="ph-t">Phase 4 &#8212; Intelligence Layer</span><span class="ph-b b4">Reports &amp; Generators</span></div>
       <div class="tg">
         <div class="tc2 c-int">
           <div class="tn2">generate_report</div>
           <div class="td2">Runs a full analysis and returns a human-readable Markdown report: Lighthouse score tables, CWV with good/warn/poor ratings, platform summary, image/JS/CSS summaries, and numbered fix recommendations.</div>
+          <div class="params"><span class="p-r">url: string</span></div>
+        </div>
+        <div class="tc2 c-int">
+          <div class="tn2">generate_report_html</div>
+          <div class="td2">Runs a full analysis and returns a self-contained HTML performance dashboard — color-coded Lighthouse score cards, Core Web Vitals grid, LCP savings bar chart, and prioritized recommendation cards. Works for any CMS (WordPress, Shopify, Next.js, or generic). Claude renders it as a visual Artifact.</div>
+          <div class="params"><span class="p-r">url: string</span></div>
+        </div>
+        <div class="tc2 c-int">
+          <div class="tn2">generate_report_docx</div>
+          <div class="td2">Runs a full analysis and saves a Word document to the user&#8217;s <code>~/Downloads/</code> folder. Includes a cover page, executive summary, Lighthouse scores table, Core Web Vitals table, LCP savings table ranked by impact, and all recommendations with evidence and fix instructions. Returns the file path.</div>
           <div class="params"><span class="p-r">url: string</span></div>
         </div>
         <div class="tc2 c-int">
@@ -440,6 +450,28 @@ td code{font-size:11.5px}
       <div class="ch"><span class="cl">claude</span></div>
       <pre>generate_report { <span class="ts">"url"</span>: <span class="ts">"https://example.com"</span> }</pre>
     </div>
+
+    <h3>Get a visual HTML dashboard (any site)</h3>
+    <p>Returns a self-contained HTML page Claude renders as an interactive Artifact &#8212; score cards, CWV grid, LCP savings bar chart, and recommendation cards. Works for WordPress, Shopify, Next.js, or any generic site.</p>
+    <div class="cw">
+      <div class="ch"><span class="cl">claude</span></div>
+      <pre>generate_report_html { <span class="ts">"url"</span>: <span class="ts">"https://example.com"</span> }
+
+<span class="tm"># Or trigger it naturally:</span>
+<span class="tm"># "Give me a visual performance report for https://example.com"</span>
+<span class="tm"># "Give me a pagespeed dashboard for https://example.com"</span></pre>
+    </div>
+
+    <h3>Export a Word document report</h3>
+    <p>Saves a <code>.docx</code> to <code>~/Downloads/</code> with a cover page, executive summary, all CWV and Lighthouse tables, LCP savings table, and full recommendations. Useful for sharing with clients or team members who don&#8217;t use Claude.</p>
+    <div class="cw">
+      <div class="ch"><span class="cl">claude</span></div>
+      <pre>generate_report_docx { <span class="ts">"url"</span>: <span class="ts">"https://example.com"</span> }
+
+<span class="tm"># Or trigger it naturally:</span>
+<span class="tm"># "Give me a pagespeed document report for https://example.com"</span></pre>
+    </div>
+    <div class="note note-i"><span class="note-ico">i</span><div class="note-txt">The file is named <code>{domain}-performance-report-{date}.docx</code> and saved to your system&#8217;s <code>Downloads</code> folder. Claude will respond with the exact file path.</div></div>
 
     <h3>WordPress + WP Rocket workflow</h3>
     <div class="wf">
